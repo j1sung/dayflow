@@ -1,0 +1,56 @@
+# Local environment variables; commit only sanitized examples.
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Keep real credentials in these directories, never in source files.
+.secrets/
+secrets/
+.credentials/
+credentials/
+
+# OAuth clients, cached access/refresh tokens, and service accounts.
+credentials.json
+credentials-*.json
+client_secret*.json
+client-secret*.json
+oauth-credentials*.json
+service-account*.json
+service_account*.json
+*-firebase-adminsdk-*.json
+authorized_user.json
+token.json
+tokens.json
+access_token*.json
+refresh_token*.json
+
+# Private keys and credential bundles.
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# Local dependencies, caches, and generated output.
+node_modules/
+.next/
+.nuxt/
+.vercel/
+.netlify/
+/dist/
+/build/
+/coverage/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+*.tsbuildinfo
+*.log
+
+# Machine-specific files.
+.DS_Store
+Thumbs.db
+Desktop.ini
