@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import CloudAccount from "../components/CloudAccount";
 import {
   ArrowDownToLine,
@@ -114,6 +114,7 @@ export default function Home() {
   const [plan, setPlan] = useState<Plan>(empty),
     [ready, setReady] = useState(false),
     [offset, setOffset] = useState(0),
+    [hourHeight, setHourHeight] = useState(96),
     [query, setQuery] = useState(""),
     [filter, setFilter] = useState("all"),
     [tab, setTab] = useState("week");
@@ -205,7 +206,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [toast]);
   useEffect(() => {
-    if (ready && calendar.current) calendar.current.scrollTop = 8 * 64;
+    if (ready && calendar.current) calendar.current.scrollTop = 8 * hourHeight;
   }, [ready]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -695,7 +696,10 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="schedule-panel">
+            <div
+              className="schedule-panel"
+              style={{ "--hour-height": `${hourHeight}px` } as CSSProperties}
+            >
               <div className="schedule-toolbar">
                 <div className="week-control">
                   <h2>
@@ -720,6 +724,27 @@ export default function Home() {
                   </button>
                 </div>
                 <div className="calendar-actions">
+                  <label className="spacing-control">
+                    시간 간격
+                    <select
+                      aria-label="시간표 간격"
+                      value={hourHeight}
+                      onChange={(e) => {
+                        const next = Number(e.target.value);
+                        const hour =
+                          (calendar.current?.scrollTop ?? 0) / hourHeight;
+                        setHourHeight(next);
+                        requestAnimationFrame(() => {
+                          if (calendar.current)
+                            calendar.current.scrollTop = hour * next;
+                        });
+                      }}
+                    >
+                      <option value={96}>보통</option>
+                      <option value={128}>넓게</option>
+                      <option value={160}>아주 넓게</option>
+                    </select>
+                  </label>
                   <span>
                     {dates[0].getMonth() + 1}.{dates[0].getDate()} –{" "}
                     {dates[6].getMonth() + 1}.{dates[6].getDate()}
@@ -783,7 +808,10 @@ export default function Home() {
                             drop(
                               d.todoId,
                               key,
-                              Math.min(1425, Math.floor(y / 16) * 15),
+                              Math.min(
+                                1425,
+                                Math.floor(y / (hourHeight / 4)) * 15,
+                              ),
                               d.blockId,
                             );
                           } catch {
@@ -798,7 +826,10 @@ export default function Home() {
                             drop(
                               selected,
                               key,
-                              Math.min(1425, Math.floor(y / 16) * 15),
+                              Math.min(
+                                1425,
+                                Math.floor(y / (hourHeight / 4)) * 15,
+                              ),
                             );
                           }
                         }}
@@ -840,20 +871,22 @@ export default function Home() {
                                     setBlockDraft(b);
                                     setModal("block");
                                   }}
-                                  className={`schedule-block ${t.category} ${t.done ? "done-block" : ""}`}
+                                  className={`schedule-block ${t.category} ${b.minutes <= 30 ? "short-block" : ""} ${b.minutes <= 15 ? "tiny-block" : ""} ${t.done ? "done-block" : ""}`}
+                                  title={`${t.title} · ${timeLabel(b.start)}–${timeLabel(b.start + b.minutes)} · ${durationLabel(b.minutes)}`}
+                                  aria-label={`${t.title}, ${timeLabel(b.start)}부터 ${timeLabel(b.start + b.minutes)}까지, ${durationLabel(b.minutes)}. 클릭하여 편집`}
                                   style={{
-                                    top: (b.start / 60) * 64,
+                                    top: (b.start / 60) * hourHeight,
                                     height: Math.max(
-                                      27,
-                                      (b.minutes / 60) * 64 - 3,
+                                      0,
+                                      (b.minutes / 60) * hourHeight - 2,
                                     ),
                                   }}
                                 >
+                                  <strong>{t.title}</strong>
                                   <span>
                                     {timeLabel(b.start)} –{" "}
                                     {timeLabel(b.start + b.minutes)}
                                   </span>
-                                  <strong>{t.title}</strong>
                                   {b.minutes >= 60 && (
                                     <small>
                                       {durationLabel(b.minutes)}
@@ -872,7 +905,7 @@ export default function Home() {
                                 ((new Date().getHours() * 60 +
                                   new Date().getMinutes()) /
                                   60) *
-                                64,
+                                hourHeight,
                             }}
                           >
                             <i />
